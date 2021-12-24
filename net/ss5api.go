@@ -6,7 +6,7 @@ import (
 )
 
 type DataHandlerFunc func(request []byte) ([]byte, error)
-type MessageHandlerFunc func(request *Socks5MessageRequest) (*Socks5MessageResponse,error)
+type MessageHandlerFunc func(request *Socks5MessageRequest) (*Socks5MessageResponse, error)
 
 type ServerInfo interface {
 	Version() byte
@@ -40,7 +40,7 @@ type SSConn interface {
 	RawConn() net.Conn
 	SendResponse(rep *Socks5MessageResponse) error
 	ReadRequest() (*Socks5MessageRequest, error)
-	ReadMessage() ([]byte,error)
-	RegisterConnectHandler(mhf MessageHandlerFunc,dhf DataHandlerFunc)
+	ReadMessage() ([]byte, error)
+	RegisterConnectHandler(mhf MessageHandlerFunc, dhf DataHandlerFunc)
 	Handler() error
 }

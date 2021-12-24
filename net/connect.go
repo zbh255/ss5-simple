@@ -14,8 +14,8 @@ const (
 func newSSConn(conn net.Conn) SSConn {
 	return &ssConn{
 		rawConn: conn,
-		mhf: nil,
-		dhf: nil,
+		mhf:     nil,
+		dhf:     nil,
 	}
 }
 
@@ -29,7 +29,6 @@ type ssConn struct {
 	dhf DataHandlerFunc
 }
 
-
 func (s *ssConn) Close() error {
 	return s.rawConn.Close()
 }
@@ -42,7 +41,6 @@ func (s *ssConn) RegisterConnectHandler(mhf MessageHandlerFunc, dhf DataHandlerF
 	s.mhf = mhf
 	s.dhf = dhf
 }
-
 
 func (s *ssConn) SendResponse(rep *Socks5MessageResponse) error {
 	buf := EncodeSocks5MessageResponse(rep)
@@ -66,14 +64,14 @@ func (s *ssConn) ReadRequest() (*Socks5MessageRequest, error) {
 
 func (s *ssConn) ReadMessage() ([]byte, error) {
 	readN := 0
-	buf := make([]byte,BUFFER_SIZE)
-	n,err := s.rawConn.Read(buf)
+	buf := make([]byte, BUFFER_SIZE)
+	n, err := s.rawConn.Read(buf)
 	if err != nil {
 		return nil, err
 	}
 	for n == BUFFER_SIZE {
 		readN += n
-		buf = append(buf,make([]byte,BUFFER_SIZE)...)
+		buf = append(buf, make([]byte, BUFFER_SIZE)...)
 		n, err = s.rawConn.Read(buf[readN : readN+BUFFER_SIZE])
 		if err == io.EOF {
 			n = 0
@@ -87,7 +85,7 @@ func (s *ssConn) ReadMessage() ([]byte, error) {
 
 	sh := (*reflect.SliceHeader)(unsafe.Pointer(&buf))
 	sh.Len = readN
-	return *(*[]byte)(unsafe.Pointer(sh)),nil
+	return *(*[]byte)(unsafe.Pointer(sh)), nil
 }
 
 func (s *ssConn) Handler() error {
@@ -100,28 +98,26 @@ func (s *ssConn) Handler() error {
 	return s.callDfh(s.dhf)
 }
 
-func (s *ssConn) callMhf(handlerFunc MessageHandlerFunc) error {
-	request,err :=s.ReadRequest()
+func (s *ssConn) callMhf(handlerFunc MessageHandlerFunc) (err error) {
+	request, err := s.ReadRequest()
 	if err != nil {
-		return err
+		return
 	}
-	response,err := handlerFunc(request)
-	if err != nil {
-		return err
-	}
-	return s.SendResponse(response)
+	response, err := handlerFunc(request)
+	err = s.SendResponse(response)
+	return
 }
 
 func (s *ssConn) callDfh(handlerFunc DataHandlerFunc) error {
-	request,err := s.ReadMessage()
+	request, err := s.ReadMessage()
 	if err != nil {
 		return err
 	}
-	response,err := handlerFunc(request)
+	response, err := handlerFunc(request)
 	if err != nil {
 		return err
 	}
-	n,err := s.rawConn.Write(response)
+	n, err := s.rawConn.Write(response)
 	if err != nil {
 		return err
 	}
@@ -130,4 +126,3 @@ func (s *ssConn) callDfh(handlerFunc DataHandlerFunc) error {
 	}
 	return nil
 }
-
