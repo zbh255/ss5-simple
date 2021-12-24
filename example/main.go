@@ -3,28 +3,13 @@ package main
 import (
 	"fmt"
 	snet "github.com/zbh255/ss5-simple/net"
-	"log"
-	"net"
 )
 
 // chinese protocol doc link to: https://wanweibaike.net/wiki-SOCKS
 // protocol doc english is RFC1928 & RFC1929
 // simple test
 func main() {
-	listener, err := net.Listen("tcp", "127.0.0.1:1080")
-	if err != nil {
-		panic(err)
-	}
-	ss5Server := snet.NewNoAuthServer(listener)
-	defer ss5Server.Close()
-	_ = ss5Server.Start()
-	for {
-		ssConn, err := ss5Server.Connection()
-		if err != nil {
-			log.Printf("[Error]: %s", err.Error())
-		}
-		go HandlerConnection(ssConn)
-	}
+	NoAbstractServer()
 }
 
 func HandlerConnection(conn snet.SSConn) {
